@@ -1,0 +1,5 @@
+filetype  : xlsx
+filepath  : ./export
+url       : jdbc:oracle:thin:@proddb.lesk.ru:1521:LESKMIGR
+login     : lcmccb
+password  : lcmccb2l1
