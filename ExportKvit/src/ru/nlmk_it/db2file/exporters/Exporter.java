@@ -46,7 +46,7 @@ public abstract class Exporter {
 	 * которые в файлах выгрузки присутствовать не должны.
 	 * Поэтому первые два столбца пропускаются.
 	 */
-	protected static final int startColumnIndex = 2;
+	protected static final int startColumnIndex = 3;
 	
 	protected Exporter(File exportDir,
 		       String exportFilename,

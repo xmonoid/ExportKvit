@@ -185,7 +185,7 @@ public final class DBFExporter extends Exporter {
 			return 0;
 		}
 		
-		String prevaddressshort = resultSet.getString("addressshort");
+		String prev_postal = resultSet.getString("postal");
 		String prev_bd_lesk = resultSet.getString("bd_lesk");
 		
 		do {
@@ -202,15 +202,15 @@ public final class DBFExporter extends Exporter {
 				}
 			}
 			
-			// Если меняется улица, то в случае преодоления порогового значения открывается новый файл.
-			String addressshort = resultSet.getString("addressshort") == null ? "" : resultSet.getString("addressshort");
+			// Если меняется почтовый индекс, то в случае преодоления порогового значения открывается новый файл.
+			String postal = resultSet.getString("postal") == null ? "" : resultSet.getString("postal");
 			
-			if (!addressshort.equalsIgnoreCase(prevaddressshort)) {
+			if (!postal.equalsIgnoreCase(prev_postal)) {
 				if (counterOfRows >= SEPARATION_BORDER) {
 					break;
 				}
 				else {
-					prevaddressshort = addressshort;
+					prev_postal = postal;
 				}
 			}
 			

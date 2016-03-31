@@ -162,6 +162,7 @@ public class CSVExporter extends Exporter {
 			return 0;
 		}
 		
+		String prev_postal = resultSet.getString("postal");
 		String prevaddressshort = resultSet.getString("addressshort");
 		String prev_bd_lesk = resultSet.getString("bd_lesk");
 		
@@ -169,15 +170,18 @@ public class CSVExporter extends Exporter {
 			
 			// Если код базы меняется, то нужно открыть новый файл.
 			String bd_lesk = resultSet.getString("bd_lesk") == null ? "" : resultSet.getString("bd_lesk");
+			String postal = resultSet.getString("postal") == null ? "" : resultSet.getString("postal");
 			
-			if (!bd_lesk.equalsIgnoreCase(prev_bd_lesk)) {
+			if (!bd_lesk.equalsIgnoreCase(prev_bd_lesk) || !postal.equalsIgnoreCase(prev_postal)) {
 				if (counterOfRows > 0) {
 					break;
 				}
 				else {
 					prev_bd_lesk = bd_lesk;
+					prev_postal = postal;
 				}
 			}
+			
 			
 			// Если меняется улица, то в случае преодоления порогового значения открывается новый файл.
 			String addressshort = resultSet.getString("addressshort") == null ? "" : resultSet.getString("addressshort");
