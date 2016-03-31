@@ -185,11 +185,36 @@ select  bd_lesk,
         OZPU,
         CDAY,
         CNIGHT,
-        DOLZHNIK
+        DOLZHNIK,
+        SOdpu11,
+        SOdpu12,
+        SOdpu13,
+        SOdpu14,
+        EOdpu11,
+        EOdpu12,
+        EOdpu13,
+        EOdpu14,
+        Diff11,
+        Diff12,
+        Diff13,
+        Diff14,
+        Ratio11,
+        Ratio12,
+        Ratio13,
+        Ratio14,
+        TotalKwt11,
+        TotalKwt12,
+        TotalKwt13,
+        TotalKwt14
    from (select *
            from lcmccb.CM_KVEE_MKD_CSV k 
           where pdat = &pdat
-            and (&use_filter != '1'
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
+            and ((&use_filter != '1'
                 and &mkd_id = '-1'
                 and leskgesk = &pleskgesk
                 and bd_lesk = &pdb_lesk
@@ -206,7 +231,7 @@ select  bd_lesk,
                                      and exists (select null
                                                    from rusadm.ci_prem  pr
                                                   where pr.prem_id = bs.prem_id
-                                                    and pr.prnt_prem_id = &mkd_id)))
+                                                    and pr.prnt_prem_id = &mkd_id))))
           order by bd_lesk, 
                    upper(k.addressshort),
                    upper(k.address3),

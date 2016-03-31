@@ -217,6 +217,11 @@ select  bd_lesk,
             and k.bill_id = b.bill_id
             and b.acct_id = ac.acct_id
             and ac.mailing_prem_id = pr.prem_id
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
             and ((&use_filter != '1'
                 and &mkd_id = '-1'
                 and leskgesk = &pleskgesk

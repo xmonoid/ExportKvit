@@ -121,22 +121,37 @@ select  bd_lesk,
    from (select *
            from lcmccb.CM_KVEE_NOTMKD_CSV k 
           where leskgesk = case &use_filter
-                             when 'true' then
+                             when '1' then
                               leskgesk
                              else
                               &pleskgesk
                            end
             and pdat = &pdat
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
             and bd_lesk = case &use_filter
-                            when 'true' then
+                            when '1' then
                               bd_lesk
                             else
                               &pdb_lesk
                           end
-          order by bd_lesk,
-                 upper(k.addressshort),
+          order by bd_lesk, 
+                   upper(k.addressshort),
                    upper(k.address3),
                    to_number(regexp_replace(k.address2,'[^[[:digit:]]]*')),
                    upper(k.address2),
                    to_number(regexp_replace(k.address4,'[^[[:digit:]]]*')),
-                   upper(k.address4)) a;
+                   upper(k.address4)) a 
+  where ((a.leskgesk, a.bd_lesk) in
+        (select distinct trim(a.cis_division),
+                trim(p.state)
+           from rusadm.ci_prem     p,
+                rusadm.ci_acct     a,
+                leskdata.tmp_filtr f
+          where f.acct_id = a.acct_id
+            and a.mailing_prem_id = p.prem_id)
+    and &use_filter = '1'
+     or nvl(&use_filter, '0') != '1');

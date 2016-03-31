@@ -79,6 +79,11 @@ public final class SQLExecutor {
 	 */
 	private String mkd_id;
 	
+	/**
+	 * Параметр работы с пустыми квитанциями.
+	 */
+	private String blank_unk;
+	
 	
 	/**
 	 * Конструктор класса, выполняющего сценарий.
@@ -172,6 +177,11 @@ public final class SQLExecutor {
 		this.mkd_id = mkd_id;
 	}
 	
+	public void setBlankUnk(String blank_unk) {
+		logger.trace("Invoke setBlankUnk(" + blank_unk + ")");
+		this.blank_unk = blank_unk;
+	}
+	
 	/**
 	 * Выполнение процедуры.
 	 * @throws SQLException Выбрасывается при возникновении ошибки в процедуре.
@@ -198,6 +208,9 @@ public final class SQLExecutor {
 		}
 		if (procedure.contains(":mkd_id")) {
 			cst.setFixedCHARAtName("mkd_id", mkd_id);
+		}
+		if (procedure.contains(":blank_unk")) {
+			cst.setFixedCHARAtName("blank_unk", blank_unk);
 		}
 		logger.debug("Execute command: " + procedure);
 		cst.executeUpdate();
@@ -232,6 +245,9 @@ public final class SQLExecutor {
 		}
 		if (select.contains(":mkd_id")) {
 			cst.setFixedCHARAtName("mkd_id", mkd_id);
+		}
+		if (select.contains(":blank_unk")) {
+			cst.setFixedCHARAtName("blank_unk", blank_unk);
 		}
 
 		logger.debug("Original SQL: " + cst.getOriginalSql());
