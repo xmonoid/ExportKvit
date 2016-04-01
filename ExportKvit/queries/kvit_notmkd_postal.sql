@@ -1,5 +1,5 @@
 
-call lcmccb.pcm_kvee_load_notmkd_csv(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty, &use_filter);
+call lcmccb.pcm_kvee_notmkd_op(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty, &use_filter);
 
 select  bd_lesk,
         postal,

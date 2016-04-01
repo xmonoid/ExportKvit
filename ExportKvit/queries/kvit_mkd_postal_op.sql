@@ -1,7 +1,9 @@
 
-call lcmccb.p_kwee.pcm_kvee_mkd(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty);
+call lcmccb.pcm_kvee_mkd_id(&pdat, &pleskgesk, &pdb_lesk , &pnot_empty, &use_filter, &mkd_id, 1);
 
-select  upper(a.addressshort) addressshort,
+select  bd_lesk,
+        postal,
+        upper(a.addressshort) addressshort,
         DBM_NAME,
         '' " ",
         Company,
@@ -184,25 +186,75 @@ select  upper(a.addressshort) addressshort,
         OZPU,
         CDAY,
         CNIGHT,
-        DOLZHNIK
-   from (select *
-           from lcmccb.CM_KVEE_MKD_CSV k 
-          where leskgesk = &pleskgesk
-            and pdat = &pdat
-            and bd_lesk = case &the_filter_is_using
-                            when 'true' then
-                              bd_lesk
-                            else
-                              &pdb_lesk
-                          end
-          order by upper(k.addressshort),
+        DOLZHNIK,
+        SOdpu11,
+        SOdpu12,
+        SOdpu13,
+        SOdpu14,
+        EOdpu11,
+        EOdpu12,
+        EOdpu13,
+        EOdpu14,
+        Diff11,
+        Diff12,
+        Diff13,
+        Diff14,
+        Ratio11,
+        Ratio12,
+        Ratio13,
+        Ratio14,
+        TotalKwt11,
+        TotalKwt12,
+        TotalKwt13,
+        TotalKwt14
+   from (select k.*,
+                trim(pr.postal) as postal
+           from lcmccb.CM_KVEE_MKD_CSV k,
+                rusadm.ci_bill         b,
+                rusadm.ci_acct         ac,
+                rusadm.ci_prem         pr
+          where pdat = &pdat
+            and k.bill_id = b.bill_id
+            and b.acct_id = ac.acct_id
+            and ac.mailing_prem_id = pr.prem_id
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
+            and ((&use_filter != '1'
+                and &mkd_id = '-1'
+                and leskgesk = &pleskgesk
+                and bd_lesk = &pdb_lesk
+                 or nvl(&use_filter, '1') = '1')
+            or (nvl(&mkd_id, '-1') = '-1'
+                and &use_filter != '1'
+                and leskgesk = &pleskgesk
+                and bd_lesk = &pdb_lesk
+                 or &mkd_id != '-1'
+                and k.bill_id in (select bs.bill_id
+                                    from rusadm.ci_bseg bs
+                                   where trunc(bs.end_dt, 'mm') = &pdat
+                                     and bs.bseg_stat_flg = 50
+                                     and exists (select null
+                                                   from rusadm.ci_prem  pr
+                                                  where pr.prem_id = bs.prem_id
+                                                    and pr.prnt_prem_id = &mkd_id))))
+          order by bd_lesk,
+                   postal,
+                   upper(k.addressshort),
                    upper(k.address3),
                    to_number(regexp_replace(k.address2,'[^[[:digit:]]]*')),
                    upper(k.address2),
                    to_number(regexp_replace(k.address4,'[^[[:digit:]]]*')),
-                   upper(k.address4)) a
-          where exists (select * from rusadm.ci_acct_char ac, 
-                                      leskdata.&filter ldb
-                        where ac.char_type_cd = 'LKKLOGIN' 
-                        and a.ls = ac.adhoc_char_val 
-                        and ldb.acct_id = ac.acct_id);
+                   upper(k.address4)) a 
+  where ((a.leskgesk, a.bd_lesk) in
+                (select distinct trim(a.cis_division),
+                        trim(p.state)
+                   from rusadm.ci_prem     p,
+                        rusadm.ci_acct     a,
+                        leskdata.tmp_filtr f
+                  where f.acct_id = a.acct_id
+                    and a.mailing_prem_id = p.prem_id)
+    and &use_filter = '1'
+     or nvl(&use_filter, '0') != '1');

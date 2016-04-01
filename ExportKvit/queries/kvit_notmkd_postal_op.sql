@@ -1,7 +1,8 @@
 
-call lcmccb.pcm_kvee_load_notmkd_csv(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty, &use_filter);
+call lcmccb.pcm_kvee_notmkd_op(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty, &use_filter, 1);
 
 select  bd_lesk,
+        postal,
         upper(a.addressshort) addressshort,
         DBM_NAME,
         '' " ",
@@ -118,27 +119,41 @@ select  bd_lesk,
         CDAY,
         CNIGHT,
         DOLZHNIK
-   from (select *
-           from lcmccb.CM_KVEE_NOTMKD_CSV k 
-          where leskgesk = case &use_filter
-                             when '1' then
-                              leskgesk
-                             else
-                              &pleskgesk
-                           end
-            and pdat = &pdat
+   from (select k.*,
+                trim(pr.postal) as postal
+           from lcmccb.CM_KVEE_NOTMKD_CSV k,
+                rusadm.ci_bill         b,
+                rusadm.ci_acct         ac,
+                rusadm.ci_prem         pr
+          where pdat = &pdat
+            and k.bill_id = b.bill_id
+            and b.acct_id = ac.acct_id
+            and ac.mailing_prem_id = pr.prem_id
             and (&blank_unk = '-1' 
                 or
                 &blank_unk = '0' and trim(k.ls) is null
                 or
                 &blank_unk = '1' and trim(k.ls) is not null)
-            and bd_lesk = case &use_filter
-                            when '1' then
-                              bd_lesk
-                            else
-                              &pdb_lesk
-                          end
-          order by bd_lesk, 
+            and ((&use_filter != '1'
+                and &mkd_id = '-1'
+                and leskgesk = &pleskgesk
+                and bd_lesk = &pdb_lesk
+                 or nvl(&use_filter, '1') = '1')
+            or (nvl(&mkd_id, '-1') = '-1'
+                and &use_filter != '1'
+                and leskgesk = &pleskgesk
+                and bd_lesk = &pdb_lesk
+                 or &mkd_id != '-1'
+                and k.bill_id in (select bs.bill_id
+                                    from rusadm.ci_bseg bs
+                                   where trunc(bs.end_dt, 'mm') = &pdat
+                                     and bs.bseg_stat_flg = 50
+                                     and exists (select null
+                                                   from rusadm.ci_prem  pr
+                                                  where pr.prem_id = bs.prem_id
+                                                    and pr.prnt_prem_id = &mkd_id))))
+          order by bd_lesk,
+                   postal,
                    upper(k.addressshort),
                    upper(k.address3),
                    to_number(regexp_replace(k.address2,'[^[[:digit:]]]*')),
@@ -146,12 +161,12 @@ select  bd_lesk,
                    to_number(regexp_replace(k.address4,'[^[[:digit:]]]*')),
                    upper(k.address4)) a 
   where ((a.leskgesk, a.bd_lesk) in
-        (select distinct trim(a.cis_division),
-                trim(p.state)
-           from rusadm.ci_prem     p,
-                rusadm.ci_acct     a,
-                leskdata.tmp_filtr f
-          where f.acct_id = a.acct_id
-            and a.mailing_prem_id = p.prem_id)
+                (select distinct trim(a.cis_division),
+                        trim(p.state)
+                   from rusadm.ci_prem     p,
+                        rusadm.ci_acct     a,
+                        leskdata.tmp_filtr f
+                  where f.acct_id = a.acct_id
+                    and a.mailing_prem_id = p.prem_id)
     and &use_filter = '1'
      or nvl(&use_filter, '0') != '1');
