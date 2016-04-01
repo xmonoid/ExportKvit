@@ -114,6 +114,7 @@ public final class DB2File {
 		executor.setPnotEmpty(arguments.getPnot_empty());
 		executor.setUseFilter(arguments.getUseFilter());
 		executor.setMkdId(arguments.getMkdId());
+		executor.setBlankUnk(arguments.getBlankUnk());
 		
 		if (procedure != null && !arguments.isNoProcedure()) {
 			executor.executeProcedure();

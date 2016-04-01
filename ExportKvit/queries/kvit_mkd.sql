@@ -189,24 +189,29 @@ select  bd_lesk,
    from (select *
            from lcmccb.CM_KVEE_MKD_CSV k 
           where pdat = &pdat
-            and (&use_filter != '1'
-                and &mkd_id = '-1'
-                and leskgesk = &pleskgesk
-                and bd_lesk = &pdb_lesk
-                 or nvl(&use_filter, '1') = '1')
-            or (nvl(&mkd_id, '-1') = '-1'
-                and &use_filter != '1'
-                and leskgesk = &pleskgesk
-                and bd_lesk = &pdb_lesk
-                 or &mkd_id != '-1'
-                and k.bill_id in (select bs.bill_id
-                                    from rusadm.ci_bseg bs
-                                   where trunc(bs.end_dt, 'mm') = &pdat
-                                     and bs.bseg_stat_flg = 50
-                                     and exists (select null
-                                                   from rusadm.ci_prem  pr
-                                                  where pr.prem_id = bs.prem_id
-                                                    and pr.prnt_prem_id = &mkd_id)))
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
+            and ((&use_filter != '1'
+	                and &mkd_id = '-1'
+	                and leskgesk = &pleskgesk
+	                and bd_lesk = &pdb_lesk
+	                 or nvl(&use_filter, '1') = '1')
+	            or (nvl(&mkd_id, '-1') = '-1'
+	                and &use_filter != '1'
+	                and leskgesk = &pleskgesk
+	                and bd_lesk = &pdb_lesk
+	                 or &mkd_id != '-1'
+	                and k.bill_id in (select bs.bill_id
+	                                    from rusadm.ci_bseg bs
+	                                   where trunc(bs.end_dt, 'mm') = &pdat
+	                                     and bs.bseg_stat_flg = 50
+	                                     and exists (select null
+	                                                   from rusadm.ci_prem  pr
+	                                                  where pr.prem_id = bs.prem_id
+	                                                    and pr.prnt_prem_id = &mkd_id))))
           order by bd_lesk, 
                    upper(k.addressshort),
                    upper(k.address3),

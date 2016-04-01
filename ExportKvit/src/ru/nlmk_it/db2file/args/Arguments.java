@@ -85,6 +85,11 @@ public final class Arguments {
     		required=false)
     private String mkd_id = "-1";
     
+    @Parameter(names="-Pblank_unk",
+    		description="0 - счета с пустым УНК не выгружаются, 1 - выгружаются, -1 - похуй (default)",
+    		required=false)
+    private String blank_unk = "-1";
+    
     /**
      * The class constructor.
      */
@@ -140,6 +145,10 @@ public final class Arguments {
     
     public String getMkdId() {
     	return mkd_id;
+    }
+    
+    public String getBlankUnk() {
+    	return blank_unk;
     }
     
     public boolean isNoProcedure() {

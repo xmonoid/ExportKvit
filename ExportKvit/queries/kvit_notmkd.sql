@@ -127,6 +127,11 @@ select  bd_lesk,
                               &pleskgesk
                            end
             and pdat = &pdat
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
             and bd_lesk = case &use_filter
                             when 'true' then
                               bd_lesk
