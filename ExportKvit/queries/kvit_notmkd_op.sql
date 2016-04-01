@@ -1,7 +1,8 @@
 
-call lcmccb.p_kwee.pcm_kvee_notmkd(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty);
+call lcmccb.pcm_kvee_notmkd_op(&pdat, &pleskgesk, &pdb_lesk, &pnot_empty, &use_filter, 1);
 
-select  upper(a.addressshort) addressshort,
+select  bd_lesk,
+        upper(a.addressshort) addressshort,
         DBM_NAME,
         '' " ",
         Company,
@@ -119,22 +120,28 @@ select  upper(a.addressshort) addressshort,
         DOLZHNIK
    from (select *
            from lcmccb.CM_KVEE_NOTMKD_CSV k 
-          where leskgesk = &pleskgesk
+          where leskgesk = case &use_filter
+                             when 'true' then
+                              leskgesk
+                             else
+                              &pleskgesk
+                           end
             and pdat = &pdat
-            and bd_lesk = case &the_filter_is_using
+            and (&blank_unk = '-1' 
+                or
+                &blank_unk = '0' and trim(k.ls) is null
+                or
+                &blank_unk = '1' and trim(k.ls) is not null)
+            and bd_lesk = case &use_filter
                             when 'true' then
                               bd_lesk
                             else
                               &pdb_lesk
                           end
-          order by upper(k.addressshort),
+          order by bd_lesk,
+                 upper(k.addressshort),
                    upper(k.address3),
                    to_number(regexp_replace(k.address2,'[^[[:digit:]]]*')),
                    upper(k.address2),
                    to_number(regexp_replace(k.address4,'[^[[:digit:]]]*')),
-                   upper(k.address4)) a
-          where exists (select * from rusadm.ci_acct_char ac, 
-                                      leskdata.&filter ldb
-                        where ac.char_type_cd = 'LKKLOGIN' 
-                        and a.ls = ac.adhoc_char_val 
-                        and ldb.acct_id = ac.acct_id);
+                   upper(k.address4)) a;
